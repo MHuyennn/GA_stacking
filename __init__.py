@@ -17,7 +17,7 @@ from tensorflow import keras
 from tensorflow.keras import applications, callbacks, losses, models, optimizers, Sequential
 from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint
 from tensorflow.keras.layers import *
-from tensorflow.keras.losses import SparseCategoricalCrossentropy  # Sửa lại
+from tensorflow.keras.losses import SparseCategoricalCrossentropy
 from tensorflow.keras.models import load_model
 from tensorflow.keras.optimizers import Adam, Adamax
 
