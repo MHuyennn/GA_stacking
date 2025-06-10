@@ -20,12 +20,14 @@ The f1_score of (y_test_meta, data.y_test) will be the fitness score
 of this chromosome, and the winning chromosome after training GA will be the final test set result.
 """
 
-import os  # Thêm import os
-from __init__ import *
+import os
+from __init__ import MODELS, DL_MODELS
 from process_data import ProcessData
 from chromosome import Chromosome
 from genetic_algorithm import GeneticAlgorithm
 from utils import predict_pretrained
+import numpy as np
+from sklearn.metrics import f1_score
 
 def run_stage_3(data_dir, data_path, pretrained_dir, cache_dir, meta_dir):
     data = ProcessData(data_path)
@@ -43,8 +45,9 @@ def run_stage_3(data_dir, data_path, pretrained_dir, cache_dir, meta_dir):
     # Pre-calculate F1 performance scores on validation set (data.x_val) to use for GA's weighted population initialization
     model_performances = [1] * len(MODELS)
     for i, model_name in enumerate(MODELS):
-        y_val_pred = predict_pretrained(data, model_name, on_test_set=False)
-        model_performances[i] = f1_score(data.y_val, np.argmax(y_val_pred, axis=1) if model_name in DL_MODELS else y_val_pred, average='macro')
+        y_val_pred = predict_pretrained(data, model_name, on_test_set=False, pretrained_dir=pretrained_dir)
+        y_val_pred = np.argmax(y_val_pred, axis=1) if model_name in DL_MODELS else y_val_pred
+        model_performances[i] = f1_score(data.y_val, y_val_pred, average='macro')
 
     # Initialize the Genetic Algorithm
     ga = GeneticAlgorithm(
