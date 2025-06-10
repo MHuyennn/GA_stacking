@@ -1,24 +1,16 @@
 """
-Stage 1: Prepare meta predictions
+Stage 1: Train and cross-validate models
 
-This stage generates meta-level predictions by performing 5-fold cross-validation for each model in MODELS.
-
-Steps:
-1. For each model in MODELS:
-    - Train on 4 folds and predict on the remaining fold.
-    - Collect out-of-fold predictions for all training samples.
-2. Compile all models' predictions into `x_train_meta`, where each column corresponds to a model.
-3. Save the meta-feature matrix to `meta_dir/x_train_meta.npy`.
-4. Save trained models to `pretrained_dir` for use in Stage 2.
-
-Summary:
-Each column `i` of `x_train_meta.npy` contains the 5-fold cross-validated predictions from `MODELS[i]` (see __init__.py) on the training dataset.
+This stage will train and cross-validate all models in MODELS list (see __init__.py)
+on the train set (data.x_train, data.y_train) using StratifiedKFold.
+The meta-features are saved to `meta_dir/x_train_meta.npy`.
+The pretrained models are saved to `pretrained_dir/`.
 """
 
 import os
 import numpy as np
 from sklearn.model_selection import StratifiedKFold
-from __init__ import MODELS, ML_MODELS, DL_MODELS, MAPPING  # Import rõ ràng thay vì *
+from __init__ import MODELS, ML_MODELS, DL_MODELS, MAPPING
 from process_data import ProcessData
 from models import MODEL_FACTORY
 from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping
@@ -53,7 +45,11 @@ def run_stage_1(data_dir, data_path, pretrained_dir, meta_dir):
     # Lặp qua từng mô hình
     for i, model_name in enumerate(MODELS):
         print(f"Processing model: {model_name}")
-        model = MODEL_FACTORY[model_name](img_size=img_size)
+        # Khởi tạo mô hình, chỉ truyền img_size cho DL_MODELS
+        if model_name in DL_MODELS:
+            model = MODEL_FACTORY[model_name](img_size=img_size)
+        else:  # ML_MODELS
+            model = MODEL_FACTORY[model_name]()  # Không truyền img_size cho ML
         if model_name in ML_MODELS:
             x_train_flat = data.x_train.reshape([-1, np.prod((img_size, img_size, 1))])
             model.fit(x_train_flat, data.y_train)
@@ -91,7 +87,7 @@ def run_stage_1(data_dir, data_path, pretrained_dir, meta_dir):
             if model_name in ML_MODELS:
                 x_train_fold = x_train_fold.reshape([-1, np.prod((img_size, img_size, 1))])
                 x_val_fold = x_val_fold.reshape([-1, np.prod((img_size, img_size, 1))])
-                y_fold_pred = model.predict_proba(x_val_fold)[:, 1]
+                y_fold_pred = model.predict_proba(x_val_fold)[:, 1]  # Lấy xác suất lớp 1
             elif model_name in DL_MODELS:
                 y_fold_pred = model.predict(x_val_fold, batch_size=32)
             
@@ -108,7 +104,6 @@ def run_stage_1(data_dir, data_path, pretrained_dir, meta_dir):
     print("Finished!")
 
 if __name__ == "__main__":
-    # Ví dụ mặc định, có thể thay đổi trong Notebook
     run_stage_1(
         data_dir='/kaggle/input/covid19-radiography-database/COVID-19_Radiography_Dataset',
         data_path='/kaggle/working/data/covid19_radiography_data.npz',
