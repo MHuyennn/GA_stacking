@@ -21,15 +21,6 @@ from tensorflow.keras.losses import SparseCategoricalCrossentropy
 from tensorflow.keras.models import load_model
 from tensorflow.keras.optimizers import Adam, Adamax
 
-from lightgbm import LGBMClassifier
-from xgboost import XGBClassifier
-from catboost import CatBoostClassifier
-from sklearn.linear_model import LogisticRegression
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.svm import SVC
-from sklearn.ensemble import AdaBoostClassifier
-from sklearn.neighbors import KNeighborsClassifier
-
 from sklearn.metrics import (
     accuracy_score,
     classification_report,
@@ -41,10 +32,9 @@ from sklearn.metrics import (
 from sklearn.model_selection import StratifiedKFold
 from sklearn.preprocessing import LabelEncoder
 
-# Model names
-DL_MODELS = ['VGG16', 'Xception', 'ResNet50', 'MobileNet']
-ML_MODELS = ['AdaBoostClassifier', 'LGBM', 'XGB', 'CatBoost', 'LogisticRegression', 'RandomForestClassifier', 'KNN']
-MODELS = ML_MODELS + DL_MODELS
+# Model names (only DL models)
+MODELS = ['VGG16', 'Xception', 'ResNet50', 'MobileNet']
+DL_MODELS = MODELS  # Đồng bộ DL_MODELS với MODELS
 
 # Số nhãn
 NUM_CLASSES = 4
@@ -54,14 +44,7 @@ MAPPING = {
     'VGG16': 'VGG16',
     'Xception': 'Xception',
     'ResNet50': 'ResNet50',
-    'MobileNet': 'MobileNet',
-    'AdaBoostClassifier': 'AdaBoost',
-    'LGBM': 'LGBM',
-    'XGB': 'XGB',
-    'CatBoost': 'CatBoost',
-    'LogisticRegression': 'Logistic',
-    'RandomForestClassifier': 'RF',
-    'KNN': 'KNN'
+    'MobileNet': 'MobileNet'
 }
 
 # Paths for training
