@@ -1,61 +1,43 @@
 """
-Stage 2: Generate test predictions
+Stage 2: Prepare test set predictions
 
-This stage generates test set predictions using the pretrained models from Stage 1.
-
-Steps:
-1. For each model in MODELS:
-    - Load the pretrained model.
-    - Predict on the test set.
-    - Save the predictions in the corresponding column of CACHE_PREDICTIONS.
-2. Save the prediction matrix to `cache_dir/cache_predictions.npy`.
-
-Summary:
-Each column `i` of `cache_predictions.npy` contains the test set predictions from `MODELS[i]` (see __init__.py).
+This stage will cache the predictions of full-train models in `pretrained_dir`
+(models trained on 100% train dataset) on the test set (data.x_test)
+into `cache_dir/cache_predictions.npy` (let's call it CACHE_PREDICTIONS table)
+to reduce the time complexity of step 3.
 """
 
-import os
+import os  # Thêm import os
 import numpy as np
-from __init__ import MODELS, DL_MODELS
+from __init__ import *
 from process_data import ProcessData
 from utils import predict_pretrained
 
 def run_stage_2(data_dir, data_path, pretrained_dir, cache_dir):
-    # Khởi tạo và xử lý dữ liệu
     data = ProcessData(data_path)
     if not os.path.exists(data_path):
-        os.makedirs(os.path.dirname(data_path), exist_ok=True)
         data.create_npz_dataset(data_dir, data_path)
     data.load_data()
     data.preprocess_data()
     data.check_lengths()
 
-    # In hình dạng dữ liệu
-    print(f"data.x_train.shape: {data.x_train.shape}, data.y_train.shape: {data.y_train.shape}")
-    print(f"data.x_val.shape: {data.x_val.shape}, data.y_val.shape: {data.y_val.shape}")
-    print(f"data.x_test.shape: {data.x_test.shape}, data.y_test.shape: {data.y_test.shape}")
-    print()
-
-    # Khởi tạo ma trận dự đoán
+    # Create CACHE_PREDICTIONS table
     CACHE_PREDICTIONS = np.zeros((data.x_test.shape[0], len(MODELS)))
-    print(f"CACHE_PREDICTIONS shape: {CACHE_PREDICTIONS.shape}")
-    print()
 
-    # Dự đoán trên tập test cho mỗi mô hình
+    # Predict each model on test set and save the prediction on its corresponding column
     for i, model_name in enumerate(MODELS):
-        print(f"Predicting with model: {model_name}")
         y_pred = predict_pretrained(data, model_name, img_size=299, on_test_set=True, pretrained_dir=pretrained_dir)
         CACHE_PREDICTIONS[:, i] = np.argmax(y_pred, axis=1) if model_name in DL_MODELS else y_pred
-        print()
 
-    # Lưu ma trận dự đoán
-    save_cache_path = os.path.join(cache_dir, 'cache_predictions.npy')
+    # Save x_predict_test
+    save_predict_path = os.path.join(cache_dir, 'cache_predictions.npy')
     os.makedirs(cache_dir, exist_ok=True)
-    print(f"Saving cache_predictions to {save_cache_path} ...")
-    np.save(save_cache_path, CACHE_PREDICTIONS)
+    print(f"Saving x_predict_test to {save_predict_path} ...")
+    np.save(save_predict_path, CACHE_PREDICTIONS)
     print("Finished!")
 
 if __name__ == "__main__":
+    # Ví dụ mặc định, có thể thay đổi trong Notebook
     run_stage_2(
         data_dir='/kaggle/input/covid19-radiography-database/COVID-19_Radiography_Dataset',
         data_path='/kaggle/working/data/covid19_radiography_data.npz',
