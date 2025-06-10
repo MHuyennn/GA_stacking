@@ -1,6 +1,6 @@
 from __init__ import *
 
-def MobileNet_Model(img_size=299, isSummary=False):  # Cập nhật img_size mặc định thành 299
+def MobileNet_Model(img_size=299, isSummary=False):
     with tf.device('/GPU:0'):
         base_model = MobileNet(weights='imagenet', include_top=False, pooling='avg', input_shape=(img_size, img_size, 1))
         base_model.trainable = False
@@ -11,13 +11,13 @@ def MobileNet_Model(img_size=299, isSummary=False):  # Cập nhật img_size m�
         model.add(Dense(220, activation='relu'))
         model.add(Dropout(0.25))
         model.add(Dense(60, activation='relu'))
-        model.add(Dense(4, activation='softmax'))  # Cập nhật thành 4 lớp cho 4 danh mục
+        model.add(Dense(NUM_CLASSES, activation='softmax'))  # Sử dụng NUM_CLASSES
         model.compile(optimizer=Adamax(learning_rate=0.001), loss='sparse_categorical_crossentropy', metrics=['accuracy'])
         if isSummary:
             print(model.summary())
     return model
 
-def ResNet50_Model(img_size=299, isSummary=False):  # Cập nhật img_size mặc định thành 299
+def ResNet50_Model(img_size=299, isSummary=False):
     with tf.device('/GPU:0'):
         base_model = ResNet50(weights='imagenet', include_top=False, pooling='avg', input_shape=(img_size, img_size, 1))
         base_model.trainable = False
@@ -28,13 +28,13 @@ def ResNet50_Model(img_size=299, isSummary=False):  # Cập nhật img_size mặ
         model.add(Dense(220, activation='relu'))
         model.add(Dropout(0.25))
         model.add(Dense(60, activation='relu'))
-        model.add(Dense(4, activation='softmax'))  # Cập nhật thành 4 lớp cho 4 danh mục
+        model.add(Dense(NUM_CLASSES, activation='softmax'))  # Sử dụng NUM_CLASSES
         model.compile(optimizer=Adamax(learning_rate=0.001), loss='sparse_categorical_crossentropy', metrics=['accuracy'])
         if isSummary:
             print(model.summary())
     return model
 
-def VGG16_Model(img_size=299, isSummary=False):  # Cập nhật img_size mặc định thành 299
+def VGG16_Model(img_size=299, isSummary=False):
     with tf.device('/GPU:0'):
         base_model = VGG16(weights='imagenet', include_top=False, pooling='avg', input_shape=(img_size, img_size, 1))
         base_model.trainable = False
@@ -45,13 +45,13 @@ def VGG16_Model(img_size=299, isSummary=False):  # Cập nhật img_size mặc �
         model.add(Dense(220, activation='relu'))
         model.add(Dropout(0.25))
         model.add(Dense(60, activation='relu'))
-        model.add(Dense(4, activation='softmax'))  # Cập nhật thành 4 lớp cho 4 danh mục
+        model.add(Dense(NUM_CLASSES, activation='softmax'))  # Sử dụng NUM_CLASSES
         model.compile(optimizer=Adamax(learning_rate=0.001), loss='sparse_categorical_crossentropy', metrics=['accuracy'])
         if isSummary:
             print(model.summary())
     return model
 
-def Xception_Model(img_size=299, isSummary=False):  # Cập nhật img_size mặc định thành 299
+def Xception_Model(img_size=299, isSummary=False):
     with tf.device('/GPU:0'):
         base_model = Xception(weights='imagenet', include_top=False, pooling='avg', input_shape=(img_size, img_size, 1))
         base_model.trainable = False
@@ -62,20 +62,20 @@ def Xception_Model(img_size=299, isSummary=False):  # Cập nhật img_size mặ
         model.add(Dense(220, activation='relu'))
         model.add(Dropout(0.25))
         model.add(Dense(60, activation='relu'))
-        model.add(Dense(4, activation='softmax'))  # Cập nhật thành 4 lớp cho 4 danh mục
+        model.add(Dense(NUM_CLASSES, activation='softmax'))  # Sử dụng NUM_CLASSES
         model.compile(optimizer=Adamax(learning_rate=0.001), loss='sparse_categorical_crossentropy', metrics=['accuracy'])
         if isSummary:
             print(model.summary())
     return model
 
 def LGBM_Model():
-    return LGBMClassifier(objective='multiclass', num_class=4)  # Cập nhật num_class thành 4
+    return LGBMClassifier(objective='multiclass', num_class=NUM_CLASSES)
 
 def XGB_Model():
-    return XGBClassifier(objective='multi:softprob', num_class=4)  # Cập nhật num_class thành 4
+    return XGBClassifier(objective='multi:softprob', num_class=NUM_CLASSES)
 
 def CatBoost_Model():
-    return CatBoostClassifier(verbose=0, loss_function='MultiClass', classes_count=4)  # Cập nhật classes_count thành 4
+    return CatBoostClassifier(verbose=0, loss_function='MultiClass', classes_count=NUM_CLASSES)
 
 def LogisticRegression_Model():
     return LogisticRegression(multi_class='multinomial')
