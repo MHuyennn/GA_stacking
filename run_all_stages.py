@@ -1,3 +1,4 @@
+# run_all_stages.py
 import sys
 import os
 try:
@@ -16,9 +17,21 @@ except ImportError as e:
     print(f"Error importing stage functions: {e}")
     raise
 
-def run_all_stages(data_dir, data_path, pretrained_dir, cache_dir, meta_dir):
-    print(f"Starting automation for models: {MODELS}")
-    for model_name in MODELS:
+def run_all_stages(data_dir, data_path, pretrained_dir, cache_dir, meta_dir, models_to_run=None):
+    # Nếu models_to_run không được cung cấp, chạy tất cả các mô hình trong MODELS
+    if models_to_run is None:
+        models_to_run = MODELS
+    # Nếu models_to_run là chuỗi, chuyển thành danh sách đơn
+    elif isinstance(models_to_run, str):
+        models_to_run = [models_to_run]
+    # Kiểm tra xem models_to_run có hợp lệ không
+    invalid_models = [m for m in models_to_run if m not in MODELS]
+    if invalid_models:
+        print(f"Warning: The following models are not in MODELS: {invalid_models}")
+        models_to_run = [m for m in models_to_run if m in MODELS]
+    print(f"Starting automation for models: {models_to_run}")
+    
+    for model_name in models_to_run:
         print(f"\nRunning all stages for model: {model_name}")
         
         # Stage 1: Train and cross-validate
