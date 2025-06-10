@@ -113,10 +113,9 @@ def run_stage_1(data_dir, data_path, pretrained_dir, meta_dir):
     print("Finished!")
 
 if __name__ == "__main__":
-    # Ví dụ mặc định, có thể thay đổi trong Notebook
     run_stage_1(
         data_dir='/kaggle/input/covid19-radiography-database/COVID-19_Radiography_Dataset',
         data_path='/kaggle/working/data/covid19_radiography_data.npz',
-        pretrained_dir='/kaggle/input/pretrained',
+        pretrained_dir='/kaggle/working/pretrained',
         meta_dir='/kaggle/working/meta'
     )
