@@ -1,4 +1,4 @@
-# run_all_stages.py
+# run_all_stages.py (cập nhật)
 import sys
 import os
 try:
@@ -18,7 +18,7 @@ except ImportError as e:
     raise
 
 def run_all_stages(data_dir, data_path, pretrained_dir, cache_dir, meta_dir, models_to_run=None):
-    # Nếu models_to_run không được cung cấp, chạy tất cả các mô hình trong MODELS
+    # Nếu models_to_run không được cung cấp, chạy tất cả các mô hình trong MODELS (chỉ DL)
     if models_to_run is None:
         models_to_run = MODELS
     # Nếu models_to_run là chuỗi, chuyển thành danh sách đơn
@@ -68,8 +68,8 @@ if __name__ == "__main__":
     print("Current sys.path:", sys.path)
     run_all_stages(
         data_dir='/kaggle/input/covid19-radiography-database/COVID-19_Radiography_Dataset',
-        data_path='/kaggle/working/data/covid19_radiography_data.npz',
-        pretrained_dir='/kaggle/working/pretrained',
+        data_path='/kaggle/working/data/small_test_data.npz',
+        pretrained_dir='/kaggle/input/pretrained',  # Sử dụng pretrained có sẵn
         cache_dir='/kaggle/working/cache',
         meta_dir='/kaggle/working/meta'
     )
