@@ -7,11 +7,11 @@ into `cache_dir/cache_predictions.npy` (let's call it CACHE_PREDICTIONS table)
 to reduce the time complexity of step 3.
 """
 
-import os  # Thêm import os
-import numpy as np
-from __init__ import *
+import os
+from __init__ import MODELS, DL_MODELS
 from process_data import ProcessData
 from utils import predict_pretrained
+import numpy as np
 
 def run_stage_2(data_dir, data_path, pretrained_dir, cache_dir):
     data = ProcessData(data_path)
@@ -26,7 +26,7 @@ def run_stage_2(data_dir, data_path, pretrained_dir, cache_dir):
 
     # Predict each model on test set and save the prediction on its corresponding column
     for i, model_name in enumerate(MODELS):
-        y_pred = predict_pretrained(data, model_name, img_size=299, on_test_set=True, pretrained_dir=pretrained_dir)
+        y_pred = predict_pretrained(data, model_name, on_test_set=True, pretrained_dir=pretrained_dir)
         CACHE_PREDICTIONS[:, i] = np.argmax(y_pred, axis=1) if model_name in DL_MODELS else y_pred
 
     # Save x_predict_test
