@@ -42,7 +42,7 @@ class ProcessData:
         assert len(self.x_test) == len(self.y_test), f"Mismatch in test data length: {len(self.x_test)} images vs {len(self.y_test)} labels"
         print("All data lengths match!")
 
-    def create_npz_dataset(self, data_dir, output_path, categories=['COVID', 'Normal', 'Viral Pneumonia', 'Lung_Opacity'], target_size=(299, 299)):
+    def create_npz_dataset(self, data_dir, output_path_train, output_path_val_test, categories=['COVID', 'Normal', 'Viral Pneumonia', 'Lung_Opacity'], target_size=(299, 299)):
         x_data, y_data = [], []
         print(f"Scanning data from {data_dir}")
         
@@ -66,9 +66,10 @@ class ProcessData:
                     if img_resized.shape != (299, 299):
                         raise ValueError(f"Unexpected shape {img_resized.shape} for {img_path}, expected (299, 299)")
                     print(f"Image resized to shape {img_resized.shape}")
-                    img_array = np.expand_dims(img_resized, axis=-1).astype("float32") / 255.0
-                    if img_array.shape != (299, 299, 1):
-                        raise ValueError(f"Unexpected final shape {img_array.shape} for {img_path}, expected (299, 299, 1)")
+                    # Chuyển ảnh xám sang 3 kênh bằng cách lặp lại kênh
+                    img_array = np.stack([img_resized] * 3, axis=-1).astype("float32") / 255.0
+                    if img_array.shape != (299, 299, 3):
+                        raise ValueError(f"Unexpected final shape {img_array.shape} for {img_path}, expected (299, 299, 3)")
                     print(f"Image array created with shape {img_array.shape}")
                     x_data.append(img_array)
                     y_data.append(idx)
@@ -83,6 +84,13 @@ class ProcessData:
         print(f"Total samples collected: {len(x_data)}")
         x_train, x_temp, y_train, y_temp = train_test_split(x_data, y_data, test_size=0.3, stratify=y_data, random_state=42)
         x_val, x_test, y_val, y_test = train_test_split(x_temp, y_temp, test_size=0.5, stratify=y_temp, random_state=42)
-        os.makedirs(os.path.dirname(output_path), exist_ok=True)
-        np.savez(output_path, train_images=x_train, train_labels=y_train, val_images=x_val, val_labels=y_val, test_images=x_test, test_labels=y_test)
-        print(f"Đã tạo và lưu dữ liệu vào {output_path}")
+        
+        # Lưu tập huấn luyện
+        os.makedirs(os.path.dirname(output_path_train), exist_ok=True)
+        np.savez(output_path_train, train_images=x_train, train_labels=y_train)
+        print(f"Đã tạo và lưu tập huấn luyện vào {output_path_train}")
+        
+        # Lưu tập xác thực và kiểm tra
+        os.makedirs(os.path.dirname(output_path_val_test), exist_ok=True)
+        np.savez(output_path_val_test, val_images=x_val, val_labels=y_val, test_images=x_test, test_labels=y_test)
+        print(f"Đã tạo và lưu tập xác thực và kiểm tra vào {output_path_val_test}")
