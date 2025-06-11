@@ -1,7 +1,7 @@
 """
-Stage 3: GA training
+Stage 3: GA training with DL models
 
-(Optional) before GA, we pre-calculate the performances of full-trained models
+(Optional) before GA, we pre-calculate the performances of full-trained DL models
 on validation set for weighted population initialization.
 You can skip this step by setting model_performances=None, and GA will use random initialization algorithm instead.
 
@@ -21,7 +21,7 @@ of this chromosome, and the winning chromosome after training GA will be the fin
 """
 
 import os
-from __init__ import MODELS, DL_MODELS
+from __init__ import MODELS
 from process_data import ProcessData
 from chromosome import Chromosome
 from genetic_algorithm import GeneticAlgorithm
@@ -46,7 +46,7 @@ def run_stage_3(data_dir, data_path, pretrained_dir, cache_dir, meta_dir):
     model_performances = [1] * len(MODELS)
     for i, model_name in enumerate(MODELS):
         y_val_pred = predict_pretrained(data, model_name, on_test_set=False, pretrained_dir=pretrained_dir)
-        y_val_pred = np.argmax(y_val_pred, axis=1) if model_name in DL_MODELS else y_val_pred
+        y_val_pred = np.argmax(y_val_pred, axis=1)
         model_performances[i] = f1_score(data.y_val, y_val_pred, average='macro')
 
     # Initialize the Genetic Algorithm
