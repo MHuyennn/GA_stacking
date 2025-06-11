@@ -3,6 +3,7 @@ import numpy as np
 import cv2
 from sklearn.model_selection import train_test_split
 from __init__ import *
+from kaggle.api.kaggle_api_extended import KaggleApi
 
 class ProcessData:
     def __init__(self, data_path=None):
@@ -42,7 +43,7 @@ class ProcessData:
         assert len(self.x_test) == len(self.y_test), f"Mismatch in test data length: {len(self.x_test)} images vs {len(self.y_test)} labels"
         print("All data lengths match!")
 
-    def create_npz_dataset(self, data_dir, output_path, part='train', categories=['COVID', 'Normal', 'Viral Pneumonia', 'Lung_Opacity'], target_size=(299, 299)):
+    def create_npz_dataset(self, data_dir, output_path, part='train_part1', categories=['COVID', 'Normal', 'Viral Pneumonia', 'Lung_Opacity'], target_size=(299, 299)):
         x_data, y_data = [], []
         print(f"Scanning data from {data_dir} for part {part}")
         
@@ -83,15 +84,43 @@ class ProcessData:
         x_data, y_data = np.array(x_data), np.array(y_data)
         print(f"Total samples collected: {len(x_data)}")
 
-        if part == 'train':
-            # Lưu tập huấn luyện
+        if part == 'train_part1':
+            # Lưu 50% đầu tiên của tập huấn luyện
+            train_indices = np.random.choice(len(x_data), size=int(0.5 * len(x_data)), replace=False)
+            x_train_part1 = x_data[train_indices]
+            y_train_part1 = y_data[train_indices]
             os.makedirs(os.path.dirname(output_path), exist_ok=True)
-            np.savez(output_path, train_images=x_data, train_labels=y_data)
-            print(f"Đã tạo và lưu tập huấn luyện vào {output_path}")
-        elif part == 'val_test':
-            # Chia và lưu tập xác thực và kiểm tra thành hai file riêng
-            x_val_test, _, y_val_test, _ = train_test_split(x_data, y_data, test_size=0, stratify=y_data, random_state=42)  # Lấy toàn bộ trước khi chia
-            x_val, x_test, y_val, y_test = train_test_split(x_val_test, y_val_test, test_size=0.5, stratify=y_val_test, random_state=42)
-            output_dir = os.path.dirname(output_path)
-            os.makedirs(output_dir, exist_ok=True)
-            np.savez
+            np.savez(output_path, train_images=x_train_part1, train_labels=y_train_part1)
+            print(f"Đã tạo và lưu 50% tập huấn luyện vào {output_path}")
+        elif part == 'train_part2':
+            # Lưu 50% còn lại của tập huấn luyện
+            # Giả sử đã có train_part1, lấy phần còn lại
+            all_indices = np.arange(len(x_data))
+            train_indices_part1 = np.load('/kaggle/working/data/train_part1.npz')['train_images'].shape[0]  # Số mẫu đã dùng
+            train_indices_part2 = np.setdiff1d(all_indices, np.random.choice(all_indices, size=train_indices_part1, replace=False))
+            x_train_part2 = x_data[train_indices_part2]
+            y_train_part2 = y_data[train_indices_part2]
+            os.makedirs(os.path.dirname(output_path), exist_ok=True)
+            np.savez(output_path, train_images=x_train_part2, train_labels=y_train_part2)
+            print(f"Đã tạo và lưu 50% còn lại của tập huấn luyện vào {output_path}")
+        elif part == 'val':
+            # Lưu tập xác thực
+            x_val, _, y_val, _ = train_test_split(x_data, y_data, test_size=0, stratify=y_data, random_state=42)  # Lấy toàn bộ trước khi chia
+            os.makedirs(os.path.dirname(output_path), exist_ok=True)
+            np.savez(output_path, val_images=x_val, val_labels=y_val)
+            print(f"Đã tạo và lưu tập xác thực vào {output_path}")
+        elif part == 'test':
+            # Lưu tập kiểm tra (sau khi đã tách val)
+            x_test, _, y_test, _ = train_test_split(x_data, y_data, test_size=0, stratify=y_data, random_state=42)  # Lấy toàn bộ trước khi chia
+            os.makedirs(os.path.dirname(output_path), exist_ok=True)
+            np.savez(output_path, test_images=x_test, test_labels=y_test)
+            print(f"Đã tạo và lưu tập kiểm tra vào {output_path}")
+        else:
+            raise ValueError(f"Invalid part value. Use 'train_part1', 'train_part2', 'val', or 'test'.")
+
+        # Tự động tải xuống file
+        api = KaggleApi()
+        api.authenticate()  # Đảm bảo bạn đã cấu hình API token của Kaggle
+        output_filename = os.path.basename(output_path)
+        api.dataset_create_new_folder('/kaggle/working/data/', {'/kaggle/working/data/' + output_filename: output_filename})
+        print(f"Đã tự động tải xuống {output_filename}.")
