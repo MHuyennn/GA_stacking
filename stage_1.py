@@ -1,19 +1,19 @@
 """
-Stage 1: Prepare meta predictions and save final DL models
+Stage 1: Prepare meta predictions for DL models
 
-This stage generates meta-level predictions by performing 5-fold cross-validation for each model in MODELS.
+This stage generates meta-level predictions by performing 5-fold cross-validation for each DL model.
 It also saves the final trained DL models in .keras format with unique names.
 
 Steps:
-1. For each model in MODELS:
+1. For each DL model in MODELS:
     - Train on 4 folds and predict on the remaining fold.
     - Collect out-of-fold predictions for all training samples.
-2. Compile all models' predictions into `x_train_meta`, where each column corresponds to a model.
+2. Compile all models' predictions into `x_train_meta`, where each column corresponds to a DL model.
 3. Save the meta-feature matrix to `meta_dir/x_train_meta.npy`.
 4. Save the final trained DL models to `pretrained_dir` with unique names.
 
 Summary:
-Each column `i` of `x_train_meta.npy` contains the 5-fold cross-validated predictions from `MODELS[i]` (see __init__.py) on the training dataset.
+Each column `i` of `x_train_meta.npy` contains the 5-fold cross-validated predictions from `MODELS[i]` on the training dataset.
 Final DL models are saved as {model_name}_final_{timestamp}.keras.
 """
 
@@ -21,7 +21,7 @@ import os
 import numpy as np
 import time
 from sklearn.model_selection import StratifiedKFold
-from __init__ import MODELS, ML_MODELS, DL_MODELS, MAPPING
+from __init__ import MODELS, MAPPING
 from process_data import ProcessData
 from models import MODEL_FACTORY
 from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping
@@ -53,42 +53,34 @@ def run_stage_1(data_dir, data_path, pretrained_dir, meta_dir):
     print(f"x_train_meta shape: {x_train_meta.shape}")
     print()
 
-    # Lặp qua từng mô hình
+    # Lặp qua từng mô hình DL
     for i, model_name in enumerate(MODELS):
         print(f"Processing model: {model_name}")
         model = MODEL_FACTORY[model_name](img_size=img_size)
-        if model_name in ML_MODELS:
-            x_train_flat = data.x_train.reshape([-1, np.prod((img_size, img_size, 1))])
-            model.fit(x_train_flat, data.y_train)
-            save_path = os.path.join(pretrained_dir, f"best_{MAPPING[model_name]}.pkl")
-            os.makedirs(pretrained_dir, exist_ok=True)
-            with open(save_path, 'wb') as f:
-                pickle.dump(model, f)
-        elif model_name in DL_MODELS:
-            checkpoint = ModelCheckpoint(
-                os.path.join(pretrained_dir, f"best_{MAPPING[model_name]}.keras"),
-                save_best_only=True,
-                monitor='val_loss'
-            )
-            early_stopping = EarlyStopping(
-                monitor='val_loss',
-                patience=5,
-                restore_best_weights=True
-            )
-            os.makedirs(pretrained_dir, exist_ok=True)
-            model.fit(
-                data.x_train,
-                data.y_train,
-                batch_size=32,
-                epochs=50,
-                validation_data=(data.x_val, data.y_val),
-                callbacks=[checkpoint, early_stopping]
-            )
-            # Lưu mô hình cuối cùng với tên duy nhất
-            timestamp = int(time.time())
-            final_save_path = os.path.join(pretrained_dir, f"{MAPPING[model_name]}_final_{timestamp}.keras")
-            model.save(final_save_path)
-            print(f"Final model saved as {final_save_path}")
+        checkpoint = ModelCheckpoint(
+            os.path.join(pretrained_dir, f"best_{MAPPING[model_name]}.keras"),
+            save_best_only=True,
+            monitor='val_loss'
+        )
+        early_stopping = EarlyStopping(
+            monitor='val_loss',
+            patience=5,
+            restore_best_weights=True
+        )
+        os.makedirs(pretrained_dir, exist_ok=True)
+        model.fit(
+            data.x_train,
+            data.y_train,
+            batch_size=32,
+            epochs=50,
+            validation_data=(data.x_val, data.y_val),
+            callbacks=[checkpoint, early_stopping]
+        )
+        # Lưu mô hình cuối cùng với tên duy nhất
+        timestamp = int(time.time())
+        final_save_path = os.path.join(pretrained_dir, f"{MAPPING[model_name]}_final_{timestamp}.keras")
+        model.save(final_save_path)
+        print(f"Final model saved as {final_save_path}")
         
         # Thực hiện cross-validation
         for fold, (train_index, val_index) in enumerate(skf.split(data.x_train, data.y_train)):
@@ -96,15 +88,9 @@ def run_stage_1(data_dir, data_path, pretrained_dir, meta_dir):
             x_train_fold, x_val_fold = data.x_train[train_index], data.x_train[val_index]
             y_train_fold, y_val_fold = data.y_train[train_index], data.y_train[val_index]
 
-            if model_name in ML_MODELS:
-                x_train_fold = x_train_fold.reshape([-1, np.prod((img_size, img_size, 1))])
-                x_val_fold = x_val_fold.reshape([-1, np.prod((img_size, img_size, 1))])
-                y_fold_pred = model.predict_proba(x_val_fold)[:, 1]
-            elif model_name in DL_MODELS:
-                y_fold_pred = model.predict(x_val_fold, batch_size=32)
-            
+            y_fold_pred = model.predict(x_val_fold, batch_size=32)
             # Gán dự đoán vào ma trận meta
-            x_train_meta[val_index, i] = np.argmax(y_fold_pred, axis=1) if model_name in DL_MODELS else y_fold_pred
+            x_train_meta[val_index, i] = np.argmax(y_fold_pred, axis=1)
         print(f"Model: {model_name} has finished Training and predicting on all folds")
         print()
 
