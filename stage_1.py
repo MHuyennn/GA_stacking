@@ -71,7 +71,7 @@ def run_stage_1(data_dir, data_path, pretrained_dir, meta_dir):
         model.fit(
             data.x_train,
             data.y_train,
-            batch_size=32,
+            batch_size=8,  # Giảm từ 32 xuống 8
             epochs=50,
             validation_data=(data.x_val, data.y_val),
             callbacks=[checkpoint, early_stopping]
@@ -88,7 +88,7 @@ def run_stage_1(data_dir, data_path, pretrained_dir, meta_dir):
             x_train_fold, x_val_fold = data.x_train[train_index], data.x_train[val_index]
             y_train_fold, y_val_fold = data.y_train[train_index], data.y_train[val_index]
 
-            y_fold_pred = model.predict(x_val_fold, batch_size=32)
+            y_fold_pred = model.predict(x_val_fold, batch_size=8)  # Giảm batch size khi predict
             # Gán dự đoán vào ma trận meta
             x_train_meta[val_index, i] = np.argmax(y_fold_pred, axis=1)
         print(f"Model: {model_name} has finished Training and predicting on all folds")
