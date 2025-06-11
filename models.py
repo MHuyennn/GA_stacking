@@ -2,8 +2,8 @@ from __init__ import *
 
 def MobileNet_Model(img_size=299, isSummary=False):
     with tf.device('/GPU:0'):
-        base_model = MobileNet(weights='imagenet', include_top=False, pooling='avg', input_shape=(img_size, img_size, 3))
-        base_model.trainable = False
+        base_model = MobileNet(include_top=False, pooling='avg', input_shape=(img_size, img_size, 1))
+        base_model.trainable = True  # Huấn luyện từ đầu vì không dùng weights='imagenet'
         model = Sequential()
         model.add(base_model)
         model.add(BatchNormalization())
@@ -19,8 +19,8 @@ def MobileNet_Model(img_size=299, isSummary=False):
 
 def ResNet50_Model(img_size=299, isSummary=False):
     with tf.device('/GPU:0'):
-        base_model = ResNet50(weights='imagenet', include_top=False, pooling='avg', input_shape=(img_size, img_size, 3))
-        base_model.trainable = False
+        base_model = ResNet50(include_top=False, pooling='avg', input_shape=(img_size, img_size, 1))
+        base_model.trainable = True  # Huấn luyện từ đầu
         model = Sequential()
         model.add(base_model)
         model.add(BatchNormalization())
@@ -36,8 +36,8 @@ def ResNet50_Model(img_size=299, isSummary=False):
 
 def VGG16_Model(img_size=299, isSummary=False):
     with tf.device('/GPU:0'):
-        base_model = VGG16(weights='imagenet', include_top=False, pooling='avg', input_shape=(img_size, img_size, 3))
-        base_model.trainable = False
+        base_model = VGG16(include_top=False, pooling='avg', input_shape=(img_size, img_size, 1))
+        base_model.trainable = True  # Huấn luyện từ đầu
         model = Sequential()
         model.add(base_model)
         model.add(BatchNormalization())
@@ -53,8 +53,8 @@ def VGG16_Model(img_size=299, isSummary=False):
 
 def Xception_Model(img_size=299, isSummary=False):
     with tf.device('/GPU:0'):
-        base_model = Xception(weights='imagenet', include_top=False, pooling='avg', input_shape=(img_size, img_size, 3))
-        base_model.trainable = False
+        base_model = Xception(include_top=False, pooling='avg', input_shape=(img_size, img_size, 1))
+        base_model.trainable = True  # Huấn luyện từ đầu
         model = Sequential()
         model.add(base_model)
         model.add(BatchNormalization())
