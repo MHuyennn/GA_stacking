@@ -66,9 +66,10 @@ class ProcessData:
                     if img_resized.shape != (299, 299):
                         raise ValueError(f"Unexpected shape {img_resized.shape} for {img_path}, expected (299, 299)")
                     print(f"Image resized to shape {img_resized.shape}")
-                    img_array = np.expand_dims(img_resized, axis=-1).astype("float32") / 255.0
-                    if img_array.shape != (299, 299, 1):
-                        raise ValueError(f"Unexpected final shape {img_array.shape} for {img_path}, expected (299, 299, 1)")
+                    # Chuyển ảnh xám sang 3 kênh bằng cách lặp lại kênh
+                    img_array = np.stack([img_resized] * 3, axis=-1).astype("float32") / 255.0
+                    if img_array.shape != (299, 299, 3):
+                        raise ValueError(f"Unexpected final shape {img_array.shape} for {img_path}, expected (299, 299, 3)")
                     print(f"Image array created with shape {img_array.shape}")
                     x_data.append(img_array)
                     y_data.append(idx)
