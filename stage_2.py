@@ -1,14 +1,12 @@
 """
-Stage 2: Prepare test set predictions
+Stage 2: Prepare test set predictions for DL models
 
-This stage will cache the predictions of full-train models in `pretrained_dir`
-(models trained on 100% train dataset) on the test set (data.x_test)
-into `cache_dir/cache_predictions.npy` (let's call it CACHE_PREDICTIONS table)
-to reduce the time complexity of step 3.
+This stage will cache the predictions of full-train DL models in `pretrained_dir`
+on the test set (data.x_test) into `cache_dir/cache_predictions.npy`.
 """
 
 import os
-from __init__ import MODELS, DL_MODELS
+from __init__ import MODELS
 from process_data import ProcessData
 from utils import predict_pretrained
 import numpy as np
@@ -24,10 +22,10 @@ def run_stage_2(data_dir, data_path, pretrained_dir, cache_dir):
     # Create CACHE_PREDICTIONS table
     CACHE_PREDICTIONS = np.zeros((data.x_test.shape[0], len(MODELS)))
 
-    # Predict each model on test set and save the prediction on its corresponding column
+    # Predict each DL model on test set and save the prediction on its corresponding column
     for i, model_name in enumerate(MODELS):
         y_pred = predict_pretrained(data, model_name, on_test_set=True, pretrained_dir=pretrained_dir)
-        CACHE_PREDICTIONS[:, i] = np.argmax(y_pred, axis=1) if model_name in DL_MODELS else y_pred
+        CACHE_PREDICTIONS[:, i] = np.argmax(y_pred, axis=1)
 
     # Save x_predict_test
     save_predict_path = os.path.join(cache_dir, 'cache_predictions.npy')
